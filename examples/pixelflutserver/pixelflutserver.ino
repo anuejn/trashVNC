@@ -9,8 +9,7 @@
 #include <IRremoteESP8266.h>
 
 #include <TFT_ILI9163C.h>
-#include <WiFiClient.h> 
-#include <WiFiUdp.h>
+#include <ESPAsyncUDP.h>
 
 // WIP need to undefine the framebuffer to have the pixelflutserver running
 
@@ -71,10 +70,7 @@ Adafruit_BNO055 bno = Adafruit_BNO055(BNO055_ID, BNO055_ADDRESS_B);
 
 byte portExpanderConfig = 0; //stores the 74HC595 config
 
-WiFiUDP UDP;
-uint16_t len;
-uint16_t pos;
-
+AsyncUDP udp;
 
 void setup() {
   initBadge();
@@ -84,28 +80,34 @@ void setup() {
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(IPAddress (10, 0, 0, 1), IPAddress(10, 0, 0, 1), IPAddress(255, 255, 255, 0));
 
-  WiFi.softAP("monitor", "123456789");
+  WiFi.softAP("monitor");
   
   Serial.print("Ip is: ");
   Serial.println(WiFi.softAPIP());
 
-  UDP.begin(1337);
+  
+  int i = 0;
+  long last = millis();
+  if(udp.listen(1337)) {
+        Serial.print("UDP Listening on IP: ");
+        Serial.println(WiFi.localIP());
+        udp.onPacket([&i, &last](AsyncUDPPacket packet) {
+          uint16_t len = ((uint16_t *) packet.data())[0];
+          uint16_t pos = ((uint16_t *) packet.data())[1];
+          memcpy(fbuff + pos, &(((uint8_t *) packet.data())[4]), packet.length() - 4);
+          i+=len;
+          if(i > 32768) {
+            Serial.println(1000.0 / (millis() - last));
+            last = millis();
+            tft.writeFramebuffer();
+            i = 0;
+          }
+          delay(20);
+        });
+    }
 }
 
-int i = 0;
 void loop() {
-   int packetSize = UDP.parsePacket();
-   if(packetSize) {
-    UDP.read((uint8_t *)&len, 2);
-    UDP.read((uint8_t *)&pos, 2);
-    UDP.read(fbuff+pos, len);
-    i+=len;
-    if(i > 32768) {
-      tft.writeFramebuffer();
-      Serial.printf("Free heap: %d\n", ESP.getFreeHeap());
-      i = 0;
-    }
-   }
 }
 
 
