@@ -70,8 +70,6 @@ Adafruit_BNO055 bno = Adafruit_BNO055(BNO055_ID, BNO055_ADDRESS_B);
 
 byte portExpanderConfig = 0; //stores the 74HC595 config
 
-AsyncUDP udp;
-
 void setup() {
   initBadge();
   
@@ -86,28 +84,11 @@ void setup() {
   Serial.println(WiFi.softAPIP());
 
   
-  int i = 0;
-  long last = millis();
-  if(udp.listen(1337)) {
-        Serial.print("UDP Listening on IP: ");
-        Serial.println(WiFi.localIP());
-        udp.onPacket([&i, &last](AsyncUDPPacket packet) {
-          uint16_t len = ((uint16_t *) packet.data())[0];
-          uint16_t pos = ((uint16_t *) packet.data())[1];
-          memcpy(fbuff + pos, &(((uint8_t *) packet.data())[4]), packet.length() - 4);
-          i+=len;
-          if(i > 32768) {
-            Serial.println(1000.0 / (millis() - last));
-            last = millis();
-            tft.writeFramebuffer();
-            i = 0;
-          }
-          delay(20);
-        });
-    }
+  init_upd_video(fbuff);
 }
 
 void loop() {
+  sendUdp((unsigned char*)"hallo", 5, 1337);
 }
 
 
