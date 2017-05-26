@@ -47,10 +47,10 @@
 #define IR_EN    6
 #define OUT1     7
 
-#define UP      720
-#define DOWN    570
-#define RIGHT   480
-#define LEFT    960
+#define UP      807
+#define DOWN    648
+#define RIGHT   540
+#define LEFT    1024
 #define OFFSET  50
 
 #define I2C_PCA 0x25
@@ -68,7 +68,7 @@
 #define WHITE   0xFFFF
 
 TFT_ILI9163C tft = TFT_ILI9163C(GPIO_LCD_CS, GPIO_LCD_DC);
-Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUM_LEDS, GPIO_WS2813, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUM_LEDS, GPIO_WS2813, NEO_GRB + NEO_KHZ8003);
 
 //global variables
 byte shiftConfig = 0; //stores the PCA config
