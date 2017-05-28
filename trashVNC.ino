@@ -109,7 +109,7 @@ void setup() {
 
   SPIFFS.begin();
   File f = SPIFFS.open("/rom" + String(rboot_config.current_rom), "w");
-  f.println("Default ROM\n");
+  f.println("trashVNC\n");
   
   
   init_upd_video(fbuff);
