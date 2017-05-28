@@ -3,6 +3,7 @@
 #include <TFT_ILI9163C.h>
 #include <Adafruit_NeoPixel.h>
 #include <Wire.h>
+#include <ESP8266WebServer.h>
 
 
 #include "rboot.h"

@@ -12,6 +12,7 @@ extern "C" {
 #endif
 
 
+
 udp_pcb * pcb = udp_new();
 int init_upd_video(uint8_t * fbuff) {
   if(pcb == NULL) return -1;
@@ -26,12 +27,13 @@ int i = 0;
 long last = millis();
 float avrg_time = 0;
 
+
 void udp_video_handler(void * fbuff, udp_pcb * pcb, pbuf * buf, struct ip_addr * addr, uint16_t port) {
   while(buf != NULL) {
     uint16_t len = buf->len;
     uint8_t * data = (uint8_t *)((buf)->payload);
-
     pbuf * this_pb = buf;
+
     buf = buf->next;
     this_pb->next = NULL;
 
@@ -40,7 +42,7 @@ void udp_video_handler(void * fbuff, udp_pcb * pcb, pbuf * buf, struct ip_addr *
     i+=len;
     if(i > 32768) {
       long now = millis();
-      avrg_time = (avrg_time * 5 + ((now - last))) / 6;
+      avrg_time =(now - last);
       Serial.println(avrg_time);
       char r = (avrg_time - 40);
       char g = 255 - (avrg_time - 40);
@@ -49,30 +51,24 @@ void udp_video_handler(void * fbuff, udp_pcb * pcb, pbuf * buf, struct ip_addr *
       pixels.show();
       tft.writeFramebuffer();
       i = 0;
+
+
+      uint16_t joy = analogRead(A0);
+      uint16_t knob = digitalRead(16);
+      udp_connect(pcb, INADDR_ANY, port);
+      pbuf* pbt = pbuf_alloc(PBUF_TRANSPORT, 4, PBUF_RAM);
+      if(pbt != NULL) {
+          uint8_t* dst = reinterpret_cast<uint8_t*>(pbt->payload);
+          memcpy(dst, &joy, 2);
+          memcpy(dst + 2, &knob, 2);
+          err_t err = udp_sendto(pcb, pbt, addr, 1337);
+          pbuf_free(pbt);
+      }
     }
 
     pbuf_free(this_pb);
+    delay(20);
   }
 }
 
-
-void foo(void * fbuff, udp_pcb * pcb, pbuf * buf, struct ip_addr * addr, short unsigned port) {
-  
-}
-
-int sendUdp(uint8_t * data, int len, int port) {
-  udp_connect(pcb, INADDR_ANY, port);
-  udp_recv(pcb, &foo, NULL);
-  pbuf* pbt = pbuf_alloc(PBUF_TRANSPORT, len, PBUF_RAM);
-  if(pbt != NULL) {
-      uint8_t* dst = reinterpret_cast<uint8_t*>(pbt->payload);
-      memcpy(dst, data, len);
-      err_t err = udp_sendto(pcb, pbt, INADDR_ANY, port);
-      pbuf_free(pbt);
-      if(err < ERR_OK) {
-          return 0;
-      }
-  return len;
-}
-}
 

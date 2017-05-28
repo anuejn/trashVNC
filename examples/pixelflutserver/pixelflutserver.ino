@@ -11,6 +11,10 @@
 #include <TFT_ILI9163C.h>
 #include <ESPAsyncUDP.h>
 
+
+#include "rboot-api.h"
+#include <FS.h>
+
 // WIP need to undefine the framebuffer to have the pixelflutserver running
 
 #define BNO055_SAMPLERATE_DELAY_MS (10)
@@ -70,6 +74,7 @@ Adafruit_BNO055 bno = Adafruit_BNO055(BNO055_ID, BNO055_ADDRESS_B);
 
 byte portExpanderConfig = 0; //stores the 74HC595 config
 
+
 void setup() {
   initBadge();
   
@@ -78,22 +83,52 @@ void setup() {
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(IPAddress (10, 0, 0, 1), IPAddress(10, 0, 0, 1), IPAddress(255, 255, 255, 0));
 
-  WiFi.softAP("monitor");
-  
-  Serial.print("Ip is: ");
-  Serial.println(WiFi.softAPIP());
 
+  char ssid[20];
+  sprintf(ssid, "mn-%d", ESP.getChipId());
+  
+  WiFi.softAP(ssid);
+
+  tft.setTextSize(1);
+  tft.println("");
+  tft.println("");
+  tft.println("");
+  tft.println("read goo.gl/ApwhQo");
+  tft.println("");
+  tft.println("");
+  tft.println("and connect to: ");
+  tft.setTextSize(3);
+  tft.println(ssid);
+  tft.setTextSize(1);
+  
+  tft.writeFramebuffer();
+
+  rboot_config rboot_config = rboot_get_config();
+  Serial.print("I am in Slot ");
+  Serial.println(rboot_config.current_rom);
+
+  SPIFFS.begin();
+  File f = SPIFFS.open("/rom" + String(rboot_config.current_rom), "w");
+  f.println("Default ROM\n");
+  
   
   init_upd_video(fbuff);
 }
 
 void loop() {
-  sendUdp((unsigned char*)"hallo", 5, 1337);
 }
 
 
 void setGPIO(byte channel, boolean level) {
   bitWrite(portExpanderConfig, channel, level);
+  Wire.beginTransmission(I2C_PCA);
+  Wire.write(portExpanderConfig);
+  Wire.endTransmission();
+}
+
+void setAnalogMUX(byte channel) {
+  portExpanderConfig = portExpanderConfig & 0b11111000;
+  portExpanderConfig = portExpanderConfig | channel;
   Wire.beginTransmission(I2C_PCA);
   Wire.write(portExpanderConfig);
   Wire.endTransmission();
@@ -123,5 +158,6 @@ void initBadge() { //initialize the badge
   tft.writeFramebuffer();
   
   setGPIO(LCD_LED, HIGH);
+  setAnalogMUX(0);
 }
 
