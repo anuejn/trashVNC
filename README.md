@@ -2,7 +2,7 @@
 
 trashVNC allows you to use your GPN 2017 badge as an external monitor. This is done via a simple UDP protocol-server on the ESP and a script on the computer-side.
 
-To use trashVNC simply download the shell script from (this gist)[https://gist.github.com/rroohhh/2fe5d2738be818bf80db979d61f91a1c], connect to the wifi hotspot of your badge and run the script.
+To use trashVNC simply download the shell script from [this gist](https://gist.github.com/rroohhh/2fe5d2738be818bf80db979d61f91a1c), connect to the wifi hotspot of your badge and run the script.
 
 ## Requirements
 
